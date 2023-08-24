@@ -7,22 +7,24 @@ import plotly.express as px
 import dash_bootstrap_components as dbc
 import pickle
 
-# import csv file and preprocess data
+# Import csv file
 df = pd.read_csv("/root/code/Cars.csv")
-df["brand"] = df["name"].str.split(" ").str[0]
-df.drop(["name"], axis=1, inplace=True)
+
+# Split mileage, max_power into value and number
 df[["mileage_value","mileage_unit"]] = df["mileage"].str.split(pat=' ', expand = True)
-df[["engine_value","engine_unit"]] = df["engine"].str.split(pat=' ', expand = True)
 df[["max_power_value","max_power_unit"]] = df["max_power"].str.split(pat=' ', expand = True)
-df.drop(["mileage","engine","max_power"], axis=1, inplace=True)
+df.drop(["mileage","max_power"], axis=1, inplace=True)
+
+# Filter dataframe not to include LPG and CNG in fuel column
 df = df.loc[(df["fuel"] != 'LPG') & (df["fuel"] != 'CNG')]
-df[["mileage","engine","max_power"]] = df[["mileage_value","engine_value","max_power_value"]].astype('float64')
-df.drop(["mileage_value","engine_value","max_power_value",
-        "mileage_unit","engine_unit","max_power_unit"], axis=1, inplace = True)
-dict_owner = {'First Owner':1, 'Second Owner':2, 'Third Owner':3, 'Fourth & Above Owner':4,
-            'Test Drive Car':5}
-df["owner"] = df["owner"].map(dict_owner)
-df = df[df["owner"] != 5]
+
+# convert mileage, max_power from string to float64
+df[["mileage" ,"max_power"]] = df[["mileage_value","max_power_value"]].astype('float64')
+df.drop(["mileage_value","max_power_value",
+        "mileage_unit","max_power_unit"], axis=1, inplace = True)
+
+# Dicard dataframe containing test drive car in owner column
+df = df[df["owner"] != 'Test Drive Car']
 
 # Initialize the app - incorporate a Dash Bootstrap theme
 external_stylesheets = [dbc.themes.JOURNAL]
@@ -54,7 +56,7 @@ app.layout = html.Div([
         html.Div(id="output", children = '')
 ])
 
-# callback input and output
+# Callback input and output
 @callback(
     Output(component_id = "output", component_property = "children"),
     State(component_id = "max_power", component_property = "value"),
@@ -64,20 +66,18 @@ app.layout = html.Div([
     prevent_initial_call=True
 )
 
-# function for finding estimated car price
+# Function for finding estimated car price
 def prediction (max_power, mileage, km_driven, submit):
     if max_power == None:
-        max_power = df["max_power"].median()
+        max_power = df["max_power"].median() # Fill in maximum power if dosen't been inserted
     if mileage == None:
-        mileage = df["mileage"].mean()
+        mileage = df["mileage"].mean() # Fill in mileage if dosen't been inserted
     if km_driven == None:
-        km_driven = df["km_driven"].median()
-    model = pickle.load(open("/root/code/car_prediction.model", 'rb'))
-    sample = np.array([[max_power, mileage, math.log(km_driven)]])
-    result = np.exp(model.predict(sample))
-    return f"The predictive car price is {round(result[0],2)}"
+        km_driven = df["km_driven"].median() # Fill in kilometers driven if doesn't been inserted
+    model = pickle.load(open("/root/code/car_prediction.model", 'rb')) # Import model
+    sample = np.array([[max_power, mileage, math.log(km_driven)]]) 
+    result = np.exp(model.predict(sample)) #Predict price
+    return f"The predictive car price is {int(result[0])}"
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-#http://localhost:8100/
