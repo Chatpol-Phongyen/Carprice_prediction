@@ -1,5 +1,5 @@
 # Web Application
-- This app contains main.py in code, docker-compose and dockerfile
+- This app contains main.py in code, docker-compose and dockerfile.
  
  Remark
  - click for http://localhost:8100/ for predict car price.
