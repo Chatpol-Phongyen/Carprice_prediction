@@ -3,4 +3,3 @@
  
  Remark
  - click for http://localhost:8100/ for car price prediction.
-
