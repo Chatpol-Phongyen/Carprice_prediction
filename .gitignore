@@ -1,0 +1,4 @@
+.vscode-server
+source_code/logs/*
+
+!.keeps

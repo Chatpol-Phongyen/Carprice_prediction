@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  dev:
+    image: priceprediction:latest
+    build: 
+      context: .
+      dockerfile: Car.Dockerfile
+    volumes:
+      - ./source_code:/root/notebook
+      - ./.vscode-server:/root/.vscode-server
